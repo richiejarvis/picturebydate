@@ -9,6 +9,7 @@ from PIL import Image
 from PIL.ExifTags import TAGS
 import shutil
 import sys,getopt
+import os
 
 def get_exif(image_file_path):
     exif_table = {}
@@ -48,6 +49,13 @@ def main(argv):
             exif_date_created = get_exif(realEntry)
             if exif_date_created != None:
                 print(str(realEntry) + ": " + str(exif_date_created))
+                # Time to get the year/month so we can use those in the new path
+                exif_string = str(exif_date_created) 
+                newFile = target_dir + "/" + exif_string[22:26] + "/" + exif_string[27:29] + "/" + str(os.path.basename(realEntry))
+                print("New location: " + newFile)
+
+
+
 
 
 if __name__ == "__main__":

@@ -48,12 +48,26 @@ def main(argv):
         if realEntry.is_dir() == False:
             exif_date_created = get_exif(realEntry)
             if exif_date_created != None:
-                print(str(realEntry) + ": " + str(exif_date_created))
+#                print(str(realEntry) + ": " + str(exif_date_created))
                 # Time to get the year/month so we can use those in the new path
                 exif_string = str(exif_date_created) 
-                newFile = target_dir + "/" + exif_string[22:26] + "/" + exif_string[27:29] + "/" + str(os.path.basename(realEntry))
-                print("New location: " + newFile)
+                target_directory = target_dir + "/" + exif_string[22:26] + "/" + exif_string[27:29] + "/" 
+                # target_directory = target_dir + "/" + exif_string[22:26] + "/" + exif_string[27:29] + "/" + str(os.path.basename(realEntry))
+                target_filename = str(os.path.basename(realEntry))
 
+                try:
+                    os.makedirs(target_directory) # create destination directory, if needed (similar to mkdir -p)
+                except OSError:
+                    # The directory already existed, nothing to do
+                    pass
+                try:
+                    # Do the actual move of the file and remove the original
+                    shutil.move(str(realEntry),target_directory + target_filename)
+
+                    print("Moved: " + target_directory + target_filename)
+                except OSError:
+                    print("File move failed!!!")
+                    sys.exit(2)
 
 
 

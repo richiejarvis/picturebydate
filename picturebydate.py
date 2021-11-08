@@ -10,12 +10,14 @@ from PIL.ExifTags import TAGS
 import shutil
 import sys,getopt
 import os
+from os.path import exists
 
 def get_exif(image_file_path):
     exif_table = {}
     try:
         image = Image.open(image_file_path)
         info = image.getexif()
+        # print (info)
         for tag, value in info.items():
             if tag == 36867:
                 decoded = TAGS.get(tag, tag)
@@ -60,17 +62,20 @@ def main(argv):
                 except OSError:
                     # The directory already existed, nothing to do
                     pass
+                # Check if the file exists, and suffix with "dup" if a duplicate
+                if exists(target_directory + target_filename):
+                    target_filename = target_filename.split(".")
+#                    print(target_filename)
+                    target_filename = target_filename[0] + "dup." + target_filename[1]
                 try:
+
                     # Do the actual move of the file and remove the original
                     shutil.move(str(realEntry),target_directory + target_filename)
 
-                    print("Moved: " + target_directory + target_filename)
+                    print("Src: " + str(realEntry) + " Target: " + target_directory + target_filename)
                 except OSError:
                     print("File move failed!!!")
                     sys.exit(2)
-
-
-
 
 if __name__ == "__main__":
     main(sys.argv[1:])

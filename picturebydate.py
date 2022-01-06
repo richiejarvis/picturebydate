@@ -11,6 +11,8 @@ import shutil
 import sys,getopt
 import os
 from os.path import exists
+import re
+from datetime import datetime
 
 def get_exif(image_file_path):
     exif_table = {}
@@ -19,7 +21,7 @@ def get_exif(image_file_path):
         info = image.getexif()
         # print (info)
         for tag, value in info.items():
-            if tag == 36867:
+            if tag == 306:
                 decoded = TAGS.get(tag, tag)
                 exif_table[decoded] = value
                 return exif_table
@@ -49,33 +51,36 @@ def main(argv):
         realEntry = entry[1]
         if realEntry.is_dir() == False:
             exif_date_created = get_exif(realEntry)
+            # print(str(realEntry) + ": " + str(exif_date_created))
             if exif_date_created != None:
-#                print(str(realEntry) + ": " + str(exif_date_created))
+                # print(str(realEntry) + ": " + str(exif_date_created))
                 # Time to get the year/month so we can use those in the new path
-                exif_string = str(exif_date_created) 
-                target_directory = target_dir + "/" + exif_string[22:26] + "/" + exif_string[27:29] + "/" 
-                # target_directory = target_dir + "/" + exif_string[22:26] + "/" + exif_string[27:29] + "/" + str(os.path.basename(realEntry))
-                target_filename = str(os.path.basename(realEntry))
+                exif_string = re.search(r'\d{4}:\d{2}:\d{2}',str(exif_date_created)[0])
+                if exif_string != None:
+                #    print(exif_string)
+                    target_directory = target_dir + "/" + exif_string[0:3] + "/" + exif_string[4:6] + "/" 
+                    # target_directory = target_dir + "/" + exif_string[22:26] + "/" + exif_string[27:29] + "/" + str(os.path.basename(realEntry))
+               #     print(str(target_directory))
+                    target_filename = str(os.path.basename(realEntry))
+                    try:
+                        os.makedirs(target_directory) # create destination directory, if needed (similar to mkdir -p)
+                    except OSError:
+                        # The directory already existed, nothing to do
+                        pass
+                    # Check if the file exists, and suffix with "dup" if a duplicate
+                    if exists(target_directory + target_filename):
+                        target_filename = target_filename.split(".")
+               #         print(target_filename)
+                        target_filename = target_filename[0] + "dup." + target_filename[1]
+                    try:
 
-                try:
-                    os.makedirs(target_directory) # create destination directory, if needed (similar to mkdir -p)
-                except OSError:
-                    # The directory already existed, nothing to do
-                    pass
-                # Check if the file exists, and suffix with "dup" if a duplicate
-                if exists(target_directory + target_filename):
-                    target_filename = target_filename.split(".")
-#                    print(target_filename)
-                    target_filename = target_filename[0] + "dup." + target_filename[1]
-                try:
+                        # Do the actual move of the file and remove the original
+                        shutil.move(str(realEntry),target_directory + target_filename)
 
-                    # Do the actual move of the file and remove the original
-                    shutil.move(str(realEntry),target_directory + target_filename)
-
-                    print("Src: " + str(realEntry) + " Target: " + target_directory + target_filename)
-                except OSError:
-                    print("File move failed!!!")
-                    sys.exit(2)
+                        print("Src: " + str(realEntry) + " Target: " + target_directory + target_filename)
+                    except OSError:
+                        print("File move failed!!!")
+                        sys.exit(2)
 
 if __name__ == "__main__":
     main(sys.argv[1:])

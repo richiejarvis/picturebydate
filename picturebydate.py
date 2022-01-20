@@ -54,13 +54,18 @@ def main(argv):
             # print(str(realEntry) + ": " + str(exif_date_created))
             if exif_date_created != None:
                 # print(str(realEntry) + ": " + str(exif_date_created))
-                # Time to get the year/month so we can use those in the new path
-                exif_string = re.search(r'\d{4}:\d{2}:\d{2}',str(exif_date_created)[0])
+                try:
+                    # Time to get the year/month so we can use those in the new path
+                    exif_string = str(re.search(r'\d{4}:\d{2}:\d{2}',str(exif_date_created))[0])
+                except:
+                    exif_string = "0000:00"
                 if exif_string != None:
-                #    print(exif_string)
-                    target_directory = target_dir + "/" + exif_string[0:3] + "/" + exif_string[4:6] + "/" 
+                    year = exif_string[0:4]
+                    month = exif_string[5:7]
+                    # print(year + "/" + month)
+                    target_directory = target_dir + "/" + year + "/" + month + "/" 
                     # target_directory = target_dir + "/" + exif_string[22:26] + "/" + exif_string[27:29] + "/" + str(os.path.basename(realEntry))
-               #     print(str(target_directory))
+                    #print(str(target_directory))
                     target_filename = str(os.path.basename(realEntry))
                     try:
                         os.makedirs(target_directory) # create destination directory, if needed (similar to mkdir -p)
@@ -70,13 +75,11 @@ def main(argv):
                     # Check if the file exists, and suffix with "dup" if a duplicate
                     if exists(target_directory + target_filename):
                         target_filename = target_filename.split(".")
-               #         print(target_filename)
+                   #         print(target_filename)
                         target_filename = target_filename[0] + "dup." + target_filename[1]
                     try:
-
                         # Do the actual move of the file and remove the original
                         shutil.move(str(realEntry),target_directory + target_filename)
-
                         print("Src: " + str(realEntry) + " Target: " + target_directory + target_filename)
                     except OSError:
                         print("File move failed!!!")
